@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+models/
+*.wav
+camera_index_*_sample.jpg
+.DS_Store
+.cognisee.lock
+doctor_camera_frame.jpg
+.claude/

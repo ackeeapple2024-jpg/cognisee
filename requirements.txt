@@ -1,0 +1,49 @@
+# CogniSee dependencies -- macOS / Apple Silicon build.
+#
+# Unlike the Windows setup, llama-cpp-python has prebuilt PyPI wheels for
+# Apple Silicon with Metal support built in, so a plain `pip install` here
+# is enough -- no --extra-index-url / CMAKE_ARGS workaround needed.
+
+# core capture / audio
+opencv-python>=4.9
+sounddevice>=0.4.6
+numpy>=1.26
+scipy>=1.11
+
+# button
+# pynput is the fallback backend (config.BUTTON_BACKEND == "pynput_key"),
+# confirmed NOT to see the YOITCH clicker's presses (it sends macOS
+# system-defined media-key events, not normal keyDown events). The default
+# backend, "media_key_tap", intercepts those via a CGEventTap and needs
+# pyobjc-framework-Quartz (the tap itself) + pyobjc-framework-Cocoa
+# (NSEvent, to decode which key/state a tapped event represents).
+pynput>=1.7
+pyobjc-framework-Quartz>=10.0
+pyobjc-framework-Cocoa>=10.0
+
+# text-to-speech (only needed if config.TTS_BACKEND == "pyttsx3";
+# the default "say" backend shells out to the macOS `say` CLI directly)
+pyttsx3>=2.90
+
+# speech-to-text
+faster-whisper>=1.0
+
+# OCR
+easyocr>=1.7
+
+# VLM: default fast path (GGUF via llama.cpp, Metal-accelerated on Apple Silicon)
+llama-cpp-python>=0.2.90
+huggingface_hub>=0.23
+
+# VLM: transformers-based backends (qwen2vl / moondream / smolvlm_hf), + shared deps
+# Pinned to 4.51.0: transformers>=5.0's internal weight-tying API breaks
+# moondream2's trust_remote_code model class (AttributeError:
+# 'HfMoondream' object has no attribute 'all_tied_weights_keys'), while
+# anything below ~4.51 doesn't know the "smolvlm" model_type at all
+# (ValueError: Transformers does not recognize this architecture).
+# 4.51.0 is verified to load qwen2vl, moondream, and smolvlm_hf all correctly.
+transformers==4.51.0
+accelerate>=0.30
+num2words>=0.5.13
+torch>=2.2
+Pillow>=10.0

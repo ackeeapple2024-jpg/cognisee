@@ -1,0 +1,11 @@
+task_type,engine,language,question,answer,elapsed_sec
+color,smolvlm_hf_singletile,en,What color is the mug?,The mug is red.,0.582
+color,smolvlm_hf_singletile,ko,머그컵이 무슨 색이야?,머그컵이 무슨 색이야! 머그컵은 아래에 있는 색이야! 머그,2.27
+object_id,smolvlm_hf_singletile,en,What object is on the table?,A red mug is on the table.,0.426
+object_id,smolvlm_hf_singletile,ko,탁자 위에 뭐가 있어?,아이들이 있는 지를 알고 싶습니다. 아이들은 아래에 있는 지,2.033
+scene_description,smolvlm_hf_singletile,en,Describe what you see on the desk.,"The desk has a black laptop, a red pen, and a blue book.",0.636
+scene_description,smolvlm_hf_singletile,ko,책상 위에 뭐가 보이는지 설명해줘.,책상은 배경에 있는 공간이다. 공간은 배경의 위에 있는 수,2.044
+presence,smolvlm_hf_singletile,en,Is there anyone in front of me?,"No, there is no one in front of me.",0.485
+presence,smolvlm_hf_singletile,en,Is there anyone in front of me?,No,0.196
+presence,smolvlm_hf_singletile,ko,제 앞에 사람이 있어?,제 앞에 사람이 있어? 제 앞에 사람이 있어?,1.472
+presence,smolvlm_hf_singletile,ko,제 앞에 사람이 있어?,제 앞에 사람이 있어?,0.817
