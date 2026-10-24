@@ -11,7 +11,7 @@ set -e
 cd "$(dirname "$0")"
 
 if [[ "$(uname -s)" != "Darwin" || "$(uname -m)" != "arm64" ]]; then
-    echo "CogniSee requires macOS on Apple Silicon (Apple Silicon)." >&2
+    echo "CogniSee requires macOS on Apple Silicon." >&2
     exit 1
 fi
 

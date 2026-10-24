@@ -9,7 +9,7 @@ always-on listening.
 
 **Hardware:** an Apple Silicon Mac, a small UVC camera (640x480 native), a Bluetooth headset (mic + audio out) and a Bluetooth clicker button.
 
-Different hardware: change the matching `config.py` setting above, and use
+Different hardware: adjust the camera/mic/button settings in `config.py`, and use
 the `test_*.py` scripts to find the right values.
 
 **Steps:**
