@@ -1,5 +1,5 @@
 """
-Trigger button (YOITCH Snapshot 2 Bluetooth clicker) test/diagnostic script.
+Trigger button (Bluetooth clicker) test/diagnostic script.
 
 CONFIRMED on this machine (2026-09-19): the clicker sends a real macOS
 "volume up" system-defined media-key event (NX_KEYTYPE_SOUND_UP, keycode 0)

@@ -6,7 +6,7 @@ transcribe the question (Whisper) -> route to OCR or a VLM -> speak the
 answer (TTS) -> repeat. Fully local/offline, no wake word, no always-on
 listening.
 
-Reconstructed on the M1 Pro MacBook (2026-09-19) from a working Windows
+Reconstructed on this Mac (2026-09-19) from a working Windows
 implementation that is not present on this machine. The pipeline shape,
 class names, and dual-OCR/VLM routing design below match what was described
 of that implementation; exact internals (esp. STT/TTS library choice) are
@@ -84,9 +84,9 @@ def _reset_portaudio() -> None:
 
     CONFIRMED on real hardware (2026-09-19): after many device
     reconnect/reorder events in one long-running process (Bluetooth
-    AirPods, a flaky USB-C dongle carrying the mic+camera), audio stream
+    Bluetooth headset, a flaky USB-C dongle carrying the mic+camera), audio stream
     opens started throwing PortAudioError [-9986] / CoreAudio -10851
-    across UNRELATED devices simultaneously (AirPods output AND the
+    across UNRELATED devices simultaneously (Bluetooth headset output AND the
     dongle's mic) even though every device was confirmed fine at the OS
     level (system_profiler, ioreg) at the same moment -- meaning
     PortAudio's own internal device table had gone stale relative to
@@ -107,7 +107,7 @@ def play_tone(freq_hz: float, duration_sec: float = config.TONE_DURATION_SEC,
 
     Deliberately swallows playback errors (logs instead of raising): this
     is a UI confirmation cue, and a failure here (e.g. an output device
-    sample-rate mismatch -- seen for real with AirPods Pro over Bluetooth,
+    sample-rate mismatch -- seen for real with Bluetooth headset over Bluetooth,
     see TONE_SAMPLE_RATE's comment in config.py) must never be allowed to
     abort whatever recording logic the caller runs after it. Retries once
     after a PortAudio device-table refresh (see _reset_portaudio()) before
@@ -174,7 +174,7 @@ def resolve_camera_index(max_index: int = 8) -> int:
     index number.
 
     CONFIRMED on this machine (2026-09-19) that cv2 index numbers are
-    unstable: this MacBook also has 2 iPhones available as Continuity
+    unstable: this Mac also has 2 iPhones available as Continuity
     Camera sources, which join/leave the AVFoundation device list based on
     proximity/wake state and shift every other camera's index around
     between runs -- and separately confirmed that OpenCV's AVFoundation
@@ -208,7 +208,7 @@ def resolve_camera_index(max_index: int = 8) -> int:
     # CONFIRMED on real hardware (2026-09-19): silently falling back to
     # config.CAMERA_INDEX here (typically 0) meant that when the external
     # webcam dropped out, the pipeline would silently grab whatever camera
-    # happened to BE at index 0 instead -- often the built-in MacBook
+    # happened to BE at index 0 instead -- often the built-in Mac
     # camera -- and either answer from the wrong image or fail confusingly.
     # The user should never get an answer sourced from a camera other than
     # the intended external one without knowing it. Raise instead of
@@ -337,7 +337,7 @@ def resolve_mic_device_index() -> Optional[int]:
     # plausible-looking but WRONG answer, worse than failing outright),
     # falling back to `None` here -- sounddevice's "use the system's
     # actual default input device" -- is safe: it will essentially always
-    # be a real, live microphone (AirPods, the built-in mic, etc.), not a
+    # be a real, live microphone (Bluetooth headset, the built-in mic, etc.), not a
     # silent one, so the user still gets an answer instead of dead audio.
     log.warning(
         "could not find an input device matching MIC_NAME_HINT=%r -- "
@@ -359,18 +359,18 @@ class PressToTalkRecorder:
     config.MAX_RECORD_SECONDS if stop() is never called.
 
     REVERTED (2026-09-20): briefly tried keeping one persistent mic stream
-    open for the whole session (to avoid AirPods' ~8s Bluetooth mic
+    open for the whole session (to avoid Bluetooth headset' ~8s Bluetooth mic
     warm-up on every press) but a live retest immediately produced worse,
     more confusing behavior than this simple version, which is what was
     running during the confirmed-good morning session (11 clean questions
     in a row). Reverted back to exactly that rather than keep layering
     fixes on top of each other without a clean before/after comparison.
     The AB13X mic (when actually connected) doesn't have this Bluetooth
-    warm-up problem at all -- it's specific to falling back to AirPods,
+    warm-up problem at all -- it's specific to falling back to Bluetooth headset,
     which only happens when AB13X isn't found.
 
     RE-ENABLED (2026-10-18) behind config.MIC_PERSISTENT_STREAM: AB13X is
-    gone, AirPods is now the mic, and its ~2.5s of post-open silence was
+    gone, Bluetooth headset is now the mic, and its ~2.5s of post-open silence was
     eating the start of every question. See config.py for details.
     """
 
@@ -621,7 +621,7 @@ class CoreAudioVolumeWatchListener(ButtonListener):
     """Polls system output volume and treats a change as a button press.
 
     SUPERSEDED by MediaKeyTapButtonListener below -- kept only for
-    reference/fallback. Confirmed on this machine (2026-09-19): the YOITCH
+    reference/fallback. Confirmed on this machine (2026-09-19): the Bluetooth clicker
     Snapshot 2 clicker sends a real macOS volume-up media-key event, the
     same volume-hijack behavior it had on Windows, just observable here
     instead of hidden. This class can only ever REACT after the system
@@ -682,7 +682,7 @@ class CoreAudioVolumeWatchListener(ButtonListener):
 class MediaKeyTapButtonListener(ButtonListener):
     """Intercepts macOS media/volume-key events via a low-level CGEventTap
     and SUPPRESSES the ones matching config.BUTTON_MEDIA_KEY_CODES before
-    macOS acts on them -- this is what actually stops the YOITCH Snapshot 2
+    macOS acts on them -- this is what actually stops the Bluetooth clicker
     clicker from changing the system volume (confirmed on this machine:
     every click sends a real NX_KEYTYPE_SOUND_UP system-defined event,
     keycode 0). Each suppressed key-down transition fires on_press(); the
@@ -1155,7 +1155,7 @@ def _speak_say(text: str) -> None:
     # Leading silence marker (macOS speech-synthesis embedded command,
     # supported by `say`/NSSpeechSynthesizer): reported on real hardware
     # (2026-09-19) that spoken answers "start mid-sentence" about half the
-    # time over AirPods. Root cause: answers are spoken after a multi-
+    # time over Bluetooth headset. Root cause: answers are spoken after a multi-
     # second silent processing gap (STT+VLM), and Bluetooth audio links
     # commonly clip the first fraction of a second of audio when output
     # resumes after being idle, while the link re-activates. A short

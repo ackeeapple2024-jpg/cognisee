@@ -5,7 +5,7 @@ Every tunable knob for the pipeline lives here, in one place, so the
 hardware-specific parts of main.py never need touching once this file is
 correct for the machine you're running on.
 
-Reconstructed for the M1 Pro MacBook (2026-09-19). Values below are
+Reconstructed for this Mac (2026-09-19). Values below are
 starting points, not measured facts about THIS machine yet -- several are
 marked "VERIFY" and must be confirmed by running the corresponding
 test_*.py script before the live pipeline (main.py) is trusted.
@@ -27,9 +27,9 @@ MODELS_DIR = os.path.join(BASE_DIR, "models")
 # below the fold for its resolution-fingerprint story) was retired after
 # repeated live sessions showed its USB-C dongle intermittently dropping
 # the video stream mid-session -- confirmed reproducible across multiple
-# process restarts, not a one-off. Replaced with a small UVC endoscope
+# process restarts, not a one-off. Replaced with a small UVC USB camera
 # camera (`system_profiler SPCameraDataType` reports it as "HD camera ",
-# VendorID_13468 ProductID_1041) on a direct connection, not a shared hub.
+# ) on a direct connection, not a shared hub.
 # A 5-minute continuous-read stability test (293/293 reads ok, 0 reopens
 # needed) showed zero drops, versus the Sonix camera failing repeatedly
 # within minutes on the same kind of test. Known tradeoff: this camera is
@@ -51,14 +51,14 @@ MODELS_DIR = os.path.join(BASE_DIR, "models")
 # to be returned when the resolution probe found no match, but on real
 # hardware that meant a dropped webcam silently got replaced with
 # whatever camera happened to be at this index -- often the built-in
-# MacBook camera -- producing answers sourced from the wrong camera
+# Mac camera -- producing answers sourced from the wrong camera
 # without any indication that had happened. main.resolve_camera_index()
 # now raises main.CameraNotFoundError instead of falling back to this
 # value at all. Kept only for reference/tooling that might want a
 # starting guess (e.g. test_camera.py), never trusted by the live pipeline.
 CAMERA_INDEX = 0
 CAMERA_NAME_HINT = "HD camera"  # substring used only if the backend can report names -- macOS/AVFoundation doesn't reliably expose this via OpenCV, kept for reference only
-CAMERA_NATIVE_WIDTH = 640    # endoscope camera's native resolution -- see resolve_camera_index()
+CAMERA_NATIVE_WIDTH = 640    # USB camera's native resolution -- see resolve_camera_index()
 CAMERA_NATIVE_HEIGHT = 480   # used as a fingerprint to find the right device regardless of index
 CAMERA_WIDTH = 640    # operating resolution requested once the right device is found (not used for identification) -- capped at native, this camera doesn't go higher
 CAMERA_HEIGHT = 480
@@ -76,7 +76,7 @@ CAMERA_WARMUP_FRAMES = 5  # frames discarded while auto-exposure settles before 
 # this index blindly (the device list order isn't guaranteed stable).
 MIC_DEVICE_INDEX = 4  # fallback only -- main.resolve_mic_device_index() finds the mic by MIC_NAME_HINT at runtime, see its docstring for why (this index went stale mid-session on real hardware)
 # SWAPPED 2026-10-18: AB13X ("USB Audio") is no longer available -- using
-# the AirPods Pro mic explicitly instead of via the default-device fallback.
+# the Bluetooth headset mic explicitly instead of via the default-device fallback.
 MIC_NAME_HINT = "AirPods"
 SAMPLE_RATE = 16000
 CHANNELS = 1
@@ -102,7 +102,7 @@ MIC_AUTO_GAIN_MAX = 20.0  # cap on the gain multiplier
 MIC_OPEN_RETRIES = 3
 MIC_OPEN_RETRY_DELAY_SEC = 0.3
 
-# PERSISTENT MIC STREAM (re-enabled 2026-10-18): the AirPods Bluetooth mic
+# PERSISTENT MIC STREAM (re-enabled 2026-10-18): the Bluetooth headset Bluetooth mic
 # delivers pure digital silence (exact zeros) for ~2.5s after every fresh
 # InputStream open -- measured on 4/4 saved recordings, which cost the
 # start of every question. (Earlier, 2026-09-20, this was measured at ~8s
@@ -113,7 +113,7 @@ MIC_OPEN_RETRY_DELAY_SEC = 0.3
 # reason the 2026-09-20 attempt misbehaved: main._reset_portaudio()
 # (called on any tone-playback failure) terminates PortAudio, killing
 # every open stream -- the recorder now detects a dead stream and reopens
-# it. Tradeoff: AirPods stay in their headset/call profile all session,
+# it. Tradeoff: Bluetooth headset stay in their headset/call profile all session,
 # so spoken answers sound more phone-call-like. False = old per-press
 # open/close behavior.
 MIC_PERSISTENT_STREAM = True
@@ -141,7 +141,7 @@ TTS_VOICE = None      # e.g. "Samantha"; None = system default voice. `say -v ?`
 TTS_RATE = 190         # words per minute (used by both backends)
 TTS_VOICE_HINT_PYTTSX3 = None  # substring match against pyttsx3 voice names, if TTS_BACKEND == "pyttsx3"
 
-# CONFIRMED on real hardware (2026-09-19): spoken answers over AirPods
+# CONFIRMED on real hardware (2026-09-19): spoken answers over Bluetooth headset
 # started mid-sentence about half the time -- a Bluetooth audio link
 # commonly clips the first fraction of a second of output when it resumes
 # after being idle (here, the multi-second silent STT+VLM processing gap
@@ -158,7 +158,7 @@ TTS_LEADING_SILENCE_MS = 400
 #
 # CRITICAL BUG FOUND ON REAL HARDWARE (2026-09-19): tone playback initially
 # reused SAMPLE_RATE (16000Hz, chosen for Whisper's expected mic input
-# rate) for OUTPUT too. AirPods Pro over Bluetooth doesn't support 16000Hz
+# rate) for OUTPUT too. Bluetooth headset over Bluetooth doesn't support 16000Hz
 # output directly, so sd.play() threw PortAudioError [-9986] every time --
 # meaning every single chime silently crashed instead of just being quiet.
 # Worse: because that exception was uncaught inside the button-press
@@ -178,12 +178,12 @@ TONE_DURATION_SEC = 0.12
 TONE_VOLUME = 0.3  # 0.0-1.0
 # Same Bluetooth idle-clipping problem as TTS_LEADING_SILENCE_MS above,
 # but worse for a 0.12s beep: the clipped part can be the whole tone
-# (reported 2026-10-18: start chime never audible over AirPods). Silence
+# (reported 2026-10-18: start chime never audible over Bluetooth headset). Silence
 # prepended to each tone gives the link time to wake up first.
 TONE_LEADING_SILENCE_SEC = 0.25
 
 # ---------------------------------------------------------------------------
-# Trigger button (YOITCH Snapshot 2 Bluetooth clicker)
+# Trigger button (Bluetooth clicker)
 # ---------------------------------------------------------------------------
 # CONFIRMED on this machine (2026-09-19): same failure mode as Windows, just
 # observable instead of hidden. Every click sends a real macOS system-level
@@ -248,8 +248,8 @@ WHISPER_LANGUAGE = None         # None = auto-detect (needs to cover English + K
 # detected language isn't in this list, re-transcribe forced to the
 # most-likely language that IS in it.
 WHISPER_ALLOWED_LANGUAGES = ["en", "ko"]
-WHISPER_COMPUTE_TYPE = "int8"   # faster-whisper compute type; "int8" is CPU-friendly, fine on M1 too
-WHISPER_DEVICE = "cpu"          # faster-whisper's CTranslate2 backend has no Metal support yet; CPU on M1 is still fast for "small"
+WHISPER_COMPUTE_TYPE = "int8"   # faster-whisper compute type; "int8" is CPU-friendly, fine on Apple Silicon too
+WHISPER_DEVICE = "cpu"          # faster-whisper's CTranslate2 backend has no Metal support yet; CPU on Apple Silicon is still fast for "small"
 
 # ---------------------------------------------------------------------------
 # Question routing: medical vs. OCR vs. VLM
@@ -324,7 +324,7 @@ OCR_GPU = False  # EasyOCR's GPU path is CUDA-only; no effect on Apple Silicon, 
 # ---------------------------------------------------------------------------
 # Vision-language model
 # ---------------------------------------------------------------------------
-# RE-BENCHMARKED on this M1 Pro (2026-09-19, benchmark_task_types.py,
+# RE-BENCHMARKED on this Mac (2026-09-19, benchmark_task_types.py,
 # 10 questions x English+Korean across color/object_id/scene_description/
 # presence, transformers==4.49.0, MPS): the Windows-era conclusion
 # ("smolvlm" fast, qwen2vl too slow) does NOT hold here.

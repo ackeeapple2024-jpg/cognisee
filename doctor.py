@@ -90,7 +90,7 @@ def check_camera() -> None:
         idx = main.resolve_camera_index()
     except main.CameraNotFoundError:
         check(False, f"no camera with native {config.CAMERA_NATIVE_WIDTH}x{config.CAMERA_NATIVE_HEIGHT} found",
-              "Plug the endoscope camera directly into the Mac (not a shared hub). If it IS plugged in, "
+              "Plug the USB camera directly into the Mac (not a shared hub). If it IS plugged in, "
               "Terminal may lack Camera permission: System Settings -> Privacy & Security -> Camera.")
         return
     check(True, f"camera found at index {idx} ({config.CAMERA_NATIVE_WIDTH}x{config.CAMERA_NATIVE_HEIGHT})")
@@ -113,7 +113,7 @@ def check_mic() -> None:
     idx = main.resolve_mic_device_index()
     if idx is None:
         check(False, f"no input device matching MIC_NAME_HINT={config.MIC_NAME_HINT!r}",
-              "Connect your AirPods (put them in your ears so they're active), or set "
+              "Connect your Bluetooth headset (put them in your ears so they're active), or set "
               "MIC_NAME_HINT in config.py to part of your mic's name. Inputs seen: "
               + ", ".join(d["name"] for d in sd.query_devices() if d["max_input_channels"] > 0))
         return

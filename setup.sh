@@ -11,7 +11,7 @@ set -e
 cd "$(dirname "$0")"
 
 if [[ "$(uname -s)" != "Darwin" || "$(uname -m)" != "arm64" ]]; then
-    echo "CogniSee requires macOS on Apple Silicon (M1 or newer)." >&2
+    echo "CogniSee requires macOS on Apple Silicon (Apple Silicon)." >&2
     exit 1
 fi
 
@@ -41,6 +41,6 @@ echo "Downloading models (first time only, ~5 GB)..."
 
 echo ""
 echo "Setup done. Next:"
-echo "  1. Plug in the camera, connect AirPods and the clicker (see README 'Quickstart')."
+echo "  1. Plug in the camera, connect Bluetooth headset and the clicker (see README 'Quickstart')."
 echo "  2. ./venv/bin/python doctor.py    # checks hardware + permissions"
 echo "  3. ./run.sh                       # starts CogniSee"

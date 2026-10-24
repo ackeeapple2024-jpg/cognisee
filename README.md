@@ -5,25 +5,9 @@ question out loud, get a spoken answer based on what a camera currently
 sees. Runs 100% locally/offline -- no cloud calls, no wake word, no
 always-on listening.
 
-> **Provenance note:** this codebase was reconstructed on an M1 Pro
-> MacBook (2026-09-19) from a written spec of a version that was built and
-> extensively tested on a Windows laptop (LG Gram, i5-1035G7, no GPU). The
-> original Windows source was not available on this machine, so this is a
-> fresh implementation matching that design, not a copy of the exact code
-> that was benchmarked. Anything below marked **VERIFY** has not yet been
-> confirmed against real hardware on this Mac.
+## Quickstart
 
-## Quickstart (new Mac, same hardware)
-
-**Hardware this is set up for** -- with exactly these, no config changes
-are needed:
-
-| Part | What | How CogniSee finds it |
-|---|---|---|
-| Computer | Apple Silicon Mac (M1 or newer), 16 GB RAM recommended | -- |
-| Camera | Small UVC endoscope camera, 640x480 native (macOS lists it as "HD camera", USB VendorID 13468 / ProductID 1041), plugged in **directly**, not through a shared hub | Native resolution 640x480 (`CAMERA_NATIVE_*` in `config.py`) |
-| Mic + audio out | AirPods Pro (any AirPods should work) | Input device name contains "AirPods" (`MIC_NAME_HINT`) |
-| Button | YOITCH Snapshot 2 Bluetooth clicker | Volume up/down media keys (`BUTTON_MEDIA_KEY_CODES`) |
+**Hardware:** an Apple Silicon Mac, a small UVC camera (640x480 native), a Bluetooth headset (mic + audio out) and a Bluetooth clicker button.
 
 Different hardware: change the matching `config.py` setting above, and use
 the `test_*.py` scripts to find the right values.
@@ -35,7 +19,7 @@ the `test_*.py` scripts to find the right values.
 2. In this folder: `./setup.sh` -- creates `venv/`, installs the exact
    tested package versions (`requirements.lock`), downloads the models
    (~5 GB, one time).
-3. Plug in the camera, connect the AirPods (in your ears) and the clicker.
+3. Plug in the camera, connect the Bluetooth headset (in your ears) and the clicker.
 4. `./venv/bin/python doctor.py` -- checks every part and tells you what to
    fix. Expect macOS permission prompts the first time; grant them to
    Terminal: **Camera**, **Microphone**, **Input Monitoring** and
@@ -106,7 +90,7 @@ hardware before the next step depends on it. Do not skip straight to
    device ordering as querying AVFoundation directly, so no form of
    "device at position N" reasoning is trustworthy here, same-process or
    not. What actually works: `main.resolve_camera_index()` finds the
-   endoscope camera by **native resolution fingerprint** -- it's 640x480
+   USB camera by **native resolution fingerprint** -- it's 640x480
    native, while the built-in FaceTime HD camera and every iPhone report
    1920x1080, so that resolution uniquely identifies the right physical
    device regardless of what index it lands on. (The original Sonix
@@ -120,18 +104,18 @@ hardware before the next step depends on it. Do not skip straight to
    `tccutil reset Camera` and retry to get a fresh permission prompt.
 
 2. **`python test_mic.py --list`**, then `--record <index>` to verify
-   signal. The mic is found by name (`config.MIC_NAME_HINT = "AirPods"`
+   signal. The mic is found by name (`config.MIC_NAME_HINT = "<part of your mic name>"`
    since 2026-10-18, when the original AB13X USB mic stopped being
    available), not by index -- see "Already resolved" below for why the
-   AirPods mic stream is kept open all session.
+   Bluetooth headset mic stream is kept open all session.
 
 3. **`python test_tts.py`** to confirm audio output + the TTS backend
    work. Set your intended output (wired earphones, or check whether this
-   MacBook model even has a headphone jack -- some are USB-C only) as the
+   Mac model even has a headphone jack -- some are USB-C only) as the
    system default output first.
 
 4. **`python test_button.py`** to confirm the trigger button. Already
-   resolved for the YOITCH Snapshot 2 -- see "Trigger button" below --
+   resolved for the Bluetooth clicker -- see "Trigger button" below --
    `config.BUTTON_BACKEND = "media_key_tap"` is the working default; this
    step is just confirming it still works on your setup (grant Input
    Monitoring permission if prompted).
@@ -151,7 +135,7 @@ hardware before the next step depends on it. Do not skip straight to
 ## Trigger button (CONFIRMED, tested on real hardware 2026-09-19)
 
 Same failure mode as Windows, just observable instead of hidden: the
-YOITCH Snapshot 2 clicker doesn't send a normal key event on macOS either.
+Bluetooth clicker clicker doesn't send a normal key event on macOS either.
 It sends real macOS system-defined **volume-key** events -- confirmed via
 `test_button.py --probe-media-keys` to fire **both** `NX_KEYTYPE_SOUND_UP`
 (code 0) and `NX_KEYTYPE_SOUND_DOWN` (code 1), which is why a plain
@@ -263,7 +247,7 @@ Qwen2-VL and Moondream2 remain switchable fallbacks
 (`config.VLM_BACKEND = "qwen2vl"` or `"moondream"`, plain transformers) if
 accuracy ever needs to trump speed.
 
-### Re-benchmarked on this M1 Pro -- the Windows hierarchy does not hold
+### Re-benchmarked on this Mac -- the Windows hierarchy does not hold
 
 Run 2026-09-19 via `benchmark_task_types.py`: 10 questions (English +
 Korean) across the 4 VLM task types (color, object ID, scene description,
@@ -309,7 +293,7 @@ actually tested there:
 ## Historical: Sonix webcam stream drops (resolved by replacing the camera)
 
 **Resolved 2026-09-23** by retiring the Sonix webcam for the current
-endoscope camera on a direct connection, which showed zero drops in a
+USB camera on a direct connection, which showed zero drops in a
 5-minute continuous-read test (293/293 reads) and in live sessions since.
 Kept because the lessons apply to any USB camera: prefer a direct port
 over a shared hub, and don't add reopen/retry loops without a clean
@@ -361,27 +345,27 @@ software controls:
   section's medical-record caveat about OCR misreads on dosage numbers.
 - If no input matches `MIC_NAME_HINT`, `main.resolve_mic_device_index()`
   falls back to the system default input rather than failing loudly the
-  way the camera does. That fallback silently picked the AirPods mic (with
+  way the camera does. That fallback silently picked the Bluetooth headset mic (with
   its ~2.5s startup silence) on 2026-10-18 -- consider making a missing
   mic an explicit error too.
-- Camera image is soft at room distance (the endoscope camera is built
+- Camera image is soft at room distance (the USB camera is built
   for close focus); no measured accuracy comparison by distance yet.
 
 ## Already resolved (kept here so it's not re-litigated)
 
-- **Camera:** endoscope camera found via `main.resolve_camera_index()`'s
+- **Camera:** USB camera found via `main.resolve_camera_index()`'s
   native-resolution fingerprint (640x480), NOT a fixed
   `config.CAMERA_INDEX` -- see setup step 1 above.
-- **Mic:** AirPods, found via `main.resolve_mic_device_index()`'s name
-  match (`MIC_NAME_HINT = "AirPods"`).
-- **AirPods mic startup silence:** every freshly opened AirPods mic
+- **Mic:** Bluetooth headset, found via `main.resolve_mic_device_index()`'s name
+  match (`MIC_NAME_HINT = "<part of your mic name>"`).
+- **Bluetooth headset mic startup silence:** every freshly opened Bluetooth headset mic
   stream delivers ~2.5s of exact digital zeros, which ate the start of
   every question (measured 4/4 recordings, 2026-10-18). Fixed by
   `config.MIC_PERSISTENT_STREAM = True` -- the stream opens once at
   startup and stays open; the button still starts/stops each question.
   Verified live: 5/5 questions transcribed word-for-word, 2.0-3.3s to
   answer. Same fix also restored the start chime, which was being
-  swallowed by the AirPods switching into headset mode
+  swallowed by the Bluetooth headset switching into headset mode
   (`TONE_LEADING_SILENCE_SEC` added as a backstop).
 - **Whisper language misdetection:** short clips were detected as
   Polish/Norwegian and transcribed as gibberish in that language.
@@ -400,7 +384,7 @@ software controls:
   help hit a ~2.5-3.2s total round-trip target. Verified with multiple
   real spoken questions, all transcribed correctly.
 - **Tone/TTS output:** `config.TONE_SAMPLE_RATE` decoupled from the mic's
-  `SAMPLE_RATE` (a 16kHz tone crashed on AirPods, which doesn't support
+  `SAMPLE_RATE` (a 16kHz tone crashed on Bluetooth headset, which doesn't support
   that output rate) and `config.TTS_LEADING_SILENCE_MS` added (Bluetooth
   audio was clipping the first fraction of a second of spoken answers
   after the multi-second silent processing gap).

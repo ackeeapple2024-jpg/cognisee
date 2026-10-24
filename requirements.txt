@@ -12,7 +12,7 @@ scipy>=1.11
 
 # button
 # pynput is the fallback backend (config.BUTTON_BACKEND == "pynput_key"),
-# confirmed NOT to see the YOITCH clicker's presses (it sends macOS
+# confirmed NOT to see the Bluetooth clicker clicker's presses (it sends macOS
 # system-defined media-key events, not normal keyDown events). The default
 # backend, "media_key_tap", intercepts those via a CGEventTap and needs
 # pyobjc-framework-Quartz (the tap itself) + pyobjc-framework-Cocoa
